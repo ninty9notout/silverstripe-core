@@ -1,0 +1,18 @@
+{
+	"name": "ninty9notout/silverstripe-core",
+	"type": "silverstripe-module",
+	"description": "This is a the core module for SilverStripe 3, which extends the SiteTree and acts as the base module for a full-featured CMS",
+	"homepage": "http://hangar18gamers.co.uk",
+	"license": "MIT",
+	"keywords": ["silverstripe", "cms", "core"],
+	"authors": [
+		{
+			"name": "ninty9notout",
+			"homepage": "http://hieroishere.com"
+		}
+	],
+	"require": {
+		"silverstripe/cms": "~3.1"
+	},
+	"minimum-stability": "dev"
+}
