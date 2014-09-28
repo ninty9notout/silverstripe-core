@@ -1,18 +1,23 @@
 ---
-name: 'core'
+name: core
 after:
-  - 'framework/*',
-  - 'cms/*'
+  - framework/*,
+  - cms/*
 ---
 SiteTree:
   nested_urls: true
   create_default_pages: false
+  extensions:
+    - SiteTreeNavigation
 SiteConfig:
   extensions:
-    - 'SiteConfigDecorator'
+    - SiteConfigDecorator
 ErrorPage:
   extensions:
-    - 'ErrorPageDecorator'
+    - ErrorPageDecorator
+RedirectorPage:
+  extensions:
+    - RedirectorPageDecorator
 UserDefinedForm:
   extensions:
-    - 'UserDefinedFormDecorator'
+    - UserDefinedFormDecorator

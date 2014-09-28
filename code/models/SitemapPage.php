@@ -6,6 +6,13 @@ class SitemapPage extends Page {
 	 */
 	static $can_be_root = true;
 
+	static $defaults = array(
+		'ShowInMenus' => false,
+		'ShowInSearch' => false,
+		'ShowInSitemap' => false,
+		'AllowComments' => false
+	);
+
 	/**
 	 * Check if a page with this class exists
 	 *
@@ -24,5 +31,22 @@ class SitemapPage extends Page {
 	 */
 	public function canDelete($member = null) {
 		return false;
+	}
+
+	/**
+	 * Creates an instance of this page after checking if one already exists
+	 */
+	public static function defaultRecords() {
+		if(DataObject::get_one('SitemapPage')) {
+			return false;
+		}
+
+		$page = new SitemapPage();
+		$page->Title = 'Sitemap';
+		$page->write();
+		$page->publish('Stage', 'Live');
+		$page->flushCache();
+		
+		DB::alteration_message('Sitemap page created', 'created');
 	}
 }

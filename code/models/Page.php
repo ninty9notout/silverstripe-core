@@ -1,6 +1,12 @@
 <?php
 class Page extends SiteTree {
 	/**
+	 * Enable or disable main image
+	 * @var bool
+	 */
+	static $enable_main_image = false;
+
+	/**
 	 * Enable or disable file, image, or video galleries
 	 * @var bool
 	 */
@@ -13,10 +19,22 @@ class Page extends SiteTree {
 	static $enable_feature_banners = false;
 
 	/**
-	 * Enable or disable related pages functionality
+	 * Enable or disable related content functionality
 	 * @var bool
 	 */
-	static $enable_related_pages = false;
+	static $enable_related_content = false;
+
+	/**
+	 * Enable or disable commenting functionality
+	 * @var bool
+	 */
+	static $enable_comments = false;
+
+	/**
+	 * Enable or disable sitemap functionality (CMS only)
+	 * @var bool
+	 */
+	static $enable_sitemap = false;
 
 	/**
 	 * By default {@link Page} cannot be root
@@ -47,25 +65,25 @@ class Page extends SiteTree {
 
 	private static $defaults = array(
 		'CanCommentType' => 'Inherit',
-		'AllowComments' => false,
-		'ShowInSitemap' => true
+		'ShowInMenus' => false,
+		'ShowInSearch' => false,
+		'ShowInSitemap' => false,
+		'AllowComments' => false
 	);
 
 	public function getCMSFields() {
 		$fields = parent::getCMSFields();
 
-		$mainImageField = new UploadField('MainImage', 'Main Image');
-		$mainImageField->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'png', 'gif', 'bmp'));
-		$mainImageField->getValidator()->setAllowedMaxFileSize(10 * 1024 * 1024); // 10MB
-
-		// Add a main image field to the media tab for all classes that are not error page
-		if($this->ClassName != 'ErrorPage') {
+		// Only add if static::$enable_main_image is true
+		if(static::$enable_main_image) {
+			$mainImageField = new UploadField('MainImage', 'Main Image');
+			$mainImageField->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'png', 'gif', 'bmp'));
+			$mainImageField->getValidator()->setAllowedMaxFileSize(10 * 1024 * 1024); // 10MB
 			$fields->addFieldToTab('Root.Media', $mainImageField);
 		}
 
-		// Add media gallery fields to the media tab for all classes that are not
-		// error page and static::$enable_media is set to true
-		if(static::$enable_media && $this->ClassName != 'ErrorPage') {
+		// Only add if static::$enable_media is true
+		if(static::$enable_media) {
 			$imagesField = new UploadField('Images', 'Images');
 			$imagesField->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'png', 'gif', 'bmp'));
 			$imagesField->getValidator()->setAllowedMaxFileSize(10 * 1024 * 1024); // 10MB
@@ -82,15 +100,13 @@ class Page extends SiteTree {
 			));
 		}
 
-		// Add feature banner to the features tab for all classes that are not
-		// error page and static::$enable_feature_banners is set to true
-		if(static::$enable_feature_banners && $this->ClassName != 'ErrorPage') {
+		// Only add if static::$enable_feature_banners is true
+		if(static::$enable_feature_banners) {
 			$fields->addFieldToTab('Root.Features', new GridField('FeatureBanners', 'Feature Banners', $this->FeatureBanners(), GridFieldConfig_RecordEditor::create()));
 		}
 
-		// Add related pages to the related content tab for all classes 
-		// are not error page and static::$enable_related_pages is set to true
-		if(static::$enable_related_pages) {
+		// Only add if static::$enable_related_content is true
+		if(static::$enable_related_content) {
 			$fields->addFieldToTab('Root.RelatedContent', new GridField('RelatedPages', 'Related Pages', $this->RelatedPages(), GridFieldConfig_RecordEditor::create()));
 		}
 
@@ -99,6 +115,16 @@ class Page extends SiteTree {
 
 	public function getSettingsFields() {
 		$fields = parent::getSettingsFields();
+		
+		// Only add if static::$enable_sitemap is true
+		if(static::$enable_sitemap) {
+			$fields->insertAfter(new CheckBoxField('ShowInSitemap', _t('SiteTree.SHOWINSITEMAP', 'Show in sitemap?')), 'ShowInSearch');
+		}
+
+		// Only add if static::$enable_comments is true
+		if(!static::$enable_comments) {
+			return $fields;
+		}
 
 		// Add field to select who can comment on this page
 		$commentersOptionsField = new OptionsetField('CanCommentType', _t('SiteTree.COMMENTERHEADER', 'Who can comment on this page?'));
@@ -113,7 +139,6 @@ class Page extends SiteTree {
 		$commenterGroupsField = ListboxField::create('CommenterGroups',  _t('SiteTree.COMMENTERGROUPS', 'Commenter Groups'))->setMultiple(true)->setSource($groupsMap);
 		$fields->addFieldToTab('Root.Settings', $commenterGroupsField);
 
-
 		$commentersOptionsField->setSource(array(
 			'Inherit' => _t('SiteTree.INHERIT', 'Inherit from parent page'),
 			'Anyone' => _t('SiteTree.COMMENTERANYONE', 'Anyone'),
@@ -121,7 +146,6 @@ class Page extends SiteTree {
 			'OnlyTheseUsers' => _t('SiteTree.COMMENTERONLYTHESE', 'Only these people (choose from list)')
 		));
 
-		$fields->insertAfter(new CheckBoxField('ShowInSitemap', _t('SiteTree.SHOWINSITEMAP', 'Show in sitemap?')), 'ShowInSearch');
 		$fields->insertAfter(new CheckBoxField('AllowComments', _t('SiteTree.ALLOWCOMMENTS', 'Allow comments?')), 'ShowInSitemap');
 		
 		if(!Permission::check('SITETREE_GRANT_ACCESS')) {
@@ -135,45 +159,6 @@ class Page extends SiteTree {
 
 		return $fields;
 	}
-
-	// public function requireDefaultRecords() {
-	// 	parent::requireDefaultRecords();
-
-	// 	if(!SiteTree::get_by_link(SiteTree::get_by_link(RootURLController::get_default_homepage_link()))) {
-	// 		$homepage = new Homepage();
-	// 		$homepage->Title = _t('SiteTree.DEFAULTHOMETITLE', 'Home');
-	// 		$homepage->Content = _t('SiteTree.DEFAULTHOMECONTENT', '<p>Welcome to SilverStripe! This is the default homepage. You can edit this page by opening <a href="admin/">the CMS</a>. You can now access the <a href="http://doc.silverstripe.org">developer documentation</a>, or begin <a href="http://doc.silverstripe.org/doku.php?id=tutorials">the tutorials.</a></p>');
-	// 		$homepage->URLSegment = RootURLController::get_default_homepage_link();
-	// 		$homepage->Sort = 1;
-	// 		$homepage->ShowInSearch = false;
-	// 		$homepage->write();
-	// 		$homepage->publish('Stage', 'Live');
-	// 		$homepage->flushCache();
-	// 		DB::alteration_message('Home page created', 'created');
-	// 	}
-
-	// 	if(DB::query('SELECT COUNT(*) FROM "SiteTree"')->value() == 1) {
-	// 		$aboutUs = new InformationPage();
-	// 		$aboutUs->Title = _t('SiteTree.DEFAULTABOUTTITLE', 'About Us');
-	// 		$aboutUs->Content = _t('SiteTree.DEFAULTABOUTCONTENT', '<p>You can fill this page out with your own content, or delete it and create your own pages.<br /></p>');
-	// 		$aboutUs->Sort = 2;
-	// 		$homepage->ShowInSearch = false;
-	// 		$aboutUs->write();
-	// 		$aboutUs->publish('Stage', 'Live');
-	// 		$aboutUs->flushCache();
-	// 		DB::alteration_message('About Us page created', 'created');
-
-	// 		$contactUs = new UserDefinedForm();
-	// 		$contactUs->Title = _t('SiteTree.DEFAULTCONTACTTITLE', 'Contact Us');
-	// 		$contactUs->Content = _t('SiteTree.DEFAULTCONTACTCONTENT', '<p>You can fill this page out with your own content, or delete it and create your own pages.<br /></p>');
-	// 		$contactUs->Sort = 3;
-	// 		$homepage->ShowInSearch = false;
-	// 		$contactUs->write();
-	// 		$contactUs->publish('Stage', 'Live');
-	// 		$contactUs->flushCache();
-	// 		DB::alteration_message('Contact Us page created', 'created');
-	// 	}
-	// }
 
 	/**
 	 * Check if this object is of {@link Page} class

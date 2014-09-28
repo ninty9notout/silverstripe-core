@@ -28,4 +28,27 @@ class Homepage extends SectionLandingPage {
 	public function HasTertiaryContent() {
 		return true;
 	}
+
+	/**
+	 * Creates an instance of this page after checking if one already exists
+	 */
+	public static function defaultRecords() {
+		if(SiteTree::get_by_link(RootURLController::get_default_homepage_link())) {
+			return false;
+		}
+
+		$page = new Homepage();
+		$page->Title = 'Home';
+		$page->URLSegment = RootURLController::get_default_homepage_link();
+		$page->Sort = 1;
+		$page->ShowInMenus = true;
+		$page->ShowInSearch = false;
+		$page->ShowInSitemap = true;
+		$page->AllowComments = false;
+		$page->write();
+		$page->publish('Stage', 'Live');
+		$page->flushCache();
+
+		DB::alteration_message('Home page created', 'created');
+	}
 }

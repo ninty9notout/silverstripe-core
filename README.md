@@ -1,9 +1,9 @@
 ## Overview ##
 
-This is a the core module for SilverStripe 3, which extends the SiteTree and acts as the base module for a full-featured CMS that provides support for:
+This is a core module for SilverStripe 3, which extends the SiteTree and acts as the base module for a full-featured CMS that provides support for:
 
 * Images, videos ([http://www.youtube.com/](YouTube) and [https://vimeo.com/](Vimeo)), and file uploads
-* Related content
+* Related pages
 * Commenting with Disqus
 * Featured content slider
 * Sitemap and various other functionality

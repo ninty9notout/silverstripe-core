@@ -33,27 +33,31 @@ class Video extends DataObject {
 		'Description' => 'Description'
 	);
 
+	static $searchable_fields = array(
+		'Title',
+		'Description',
+		'Source'
+	);
+
 	public function getCMSFields() {
 		$fields = parent::getCMSFields();
 
 		// Remove the default URL field
 		$fields->removeByName('URL');
 
-		// Add either a video URL field if this is a new record
-		// or a video URL field if this record already exists
+		// Add either a video URL field if this is a new record or a video URL field if this 
+		// record already exists
 		if(!$this->record['ID']) {
 			$fields->insertBefore(new VideoURLField('URL', 'Media URL'), 'Title');
 		} else {
 			$fields->insertBefore(new ReadonlyField('URL', 'Media URL'), 'Title');
 		}
 
-		// Remove the default description field and replace with an
-		// editable textarea field
-		$fields->removeByName('Description');
-		$fields->insertAfter(new TextareaField('Description', 'Description'), 'Title');
+		// Remove the default description field and replace with an editable textarea field
+		// $fields->removeByName('Description');
+		// $fields->insertAfter(new TextareaField('Description', 'Description'), 'Title');
 
-		// Remove the default thumbnail field and replace with an
-		// validated image upload field
+		// Remove the default thumbnail field and replace with an validated image upload field
 		$thumbnailField = $fields->dataFieldByName('Thumbnail');
 		$thumbnailField->setAllowedExtensions(array('jpg', 'jpeg', 'png', 'gif'));
 		$thumbnailField->getValidator()->setAllowedMaxFileSize(10 * 1024 * 1024); // 10MB
@@ -88,8 +92,8 @@ class Video extends DataObject {
 	protected function onBeforeWrite() {
 		parent::onBeforeWrite();
 
-		// Don't do anything unless the URL has been edited otherwise
-		// this resource-heavy function will be called everytime
+		// Don't do anything unless the URL has been edited otherwise this resource-heavy function
+		// will be called everytime
 		if(!$this->isChanged('URL')) {
 			return false;
 		}

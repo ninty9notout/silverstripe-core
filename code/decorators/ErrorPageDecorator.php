@@ -36,6 +36,10 @@ class ErrorPageDecorator extends DataExtension {
 			if(!($pageExists && file_exists($pagePath))) {
 				if(!$pageExists) {
 					$page = new ErrorPage($defaultData);
+					$page->ShowInMenus = false;
+					$page->ShowInSearch = false;
+					$page->ShowInSitemap = false;
+					$page->AllowComments = false;
 					$page->write();
 					$page->publish('Stage', 'Live');
 				}

@@ -6,6 +6,13 @@ class SearchPage extends Page {
 	 */
 	static $can_be_root = true;
 
+	static $defaults = array(
+		'ShowInMenus' => false,
+		'ShowInSearch' => false,
+		'ShowInSitemap' => false,
+		'AllowComments' => false
+	);
+
 	/**
 	 * Check if a page with this class exists
 	 *
@@ -32,5 +39,22 @@ class SearchPage extends Page {
 
 	public function showInSitemap() {
 		return false;
+	}
+
+	/**
+	 * Creates an instance of this page after checking if one already exists
+	 */
+	public static function defaultRecords() {
+		if(DataObject::get_one('SearchPage')) {
+			return false;
+		}
+
+		$page = new SearchPage();
+		$page->Title = 'Search';
+		$page->write();
+		$page->publish('Stage', 'Live');
+		$page->flushCache();
+		
+		DB::alteration_message('Search page created', 'created');
 	}
 }
